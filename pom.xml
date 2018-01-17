@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>cn.fuqiang</groupId>
+  <artifactId>Lucene</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+    <!-- 需要继承父类的maven-->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.9.RELEASE</version>
+    </parent>
+
+    <!-- 导入需的  spring-boot-starter-web-->
+    <dependencies>
+    	<!-- 使用Spring Boot简化controller -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- 连接数据库的配置 -->
+        <dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<!-- 访问jsp 必须要加该依赖 -->
+		
+		 <dependency>  
+         	<groupId>org.apache.tomcat.embed</groupId>  
+	         <artifactId>tomcat-embed-jasper</artifactId>  
+	         <scope>provided</scope>  
+	     </dependency>  
+		
+        <!-- myjdbc连接  -->
+   		<dependency>
+		  	<groupId>Mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		    <version>5.1.38</version>
+		</dependency>
+		<!-- 阿里Druid -->
+		<dependency>
+		     <groupId>com.alibaba</groupId>
+		     <artifactId>druid</artifactId>
+		     <version>1.1.5</version>
+		</dependency>
+  <!-- 引入 IKAnalyzer 第三方中文分词器-->
+  	<dependency>
+	  <groupId>com.janeluo</groupId>
+	  <artifactId>ikanalyzer</artifactId>
+	  <version>2012_u6</version>
+	</dependency>
+  </dependencies>
+</project>

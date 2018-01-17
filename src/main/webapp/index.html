@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.3c.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <title>百度一下，你就知道</title>
+        <style type="text/css">
+        body{
+        		margin-top: 0px;
+        	}
+            #thead{
+                word-spacing: 15px;
+                font-weight: bold;
+                /*color: gray;*/
+                font-size: 13px;
+                margin-top: 20.5px;
+                margin-right: 8px;
+                font-family: 宋体；
+            }
+            .footer-top{
+                word-spacing: 20px;
+                font-weight: bold;
+                font-size: 10px;
+                margin-top: 28px;
+                font-family: 宋体;
+                color:darkgray;
+            }
+ 
+            #list{
+                background: #38f;
+                border: 0;
+                height:25px;
+                width:60px;
+                color:#fff;
+            }
+            #bg{
+                margin-top: 92px;
+            }
+            #bg2{
+                margin-top: 280px;
+            }
+            #beiAn{
+             	margin-top: 15%;
+            }
+            #phoneb{
+                margin-top: 5px;
+                font-size: 12px;
+                font-weight: bold;
+                color:gray;
+            }
+            #baid{
+                background: #38f;
+                border:0;
+                height:35px;
+                width:100px;
+                color: #fff;
+                font-size: 15px;
+            }
+            #search{
+                width:530px;
+                height:30px;
+                padding-right: 0;
+            }
+            #tbox a{color: #000000;}
+            #stbox a{ color:gray; }  //link常规
+            /*a:visited{ color:black; text-decoration:none ；} //访问过后
+            a:hover{ color:red; text-decoration:none ；} //鼠标指上去的时候
+*/
+        </style>
+        <script type="text/javascript" src="jquery-3.2.1.min.js"></script>
+        <script type="text/javascript">
+        	$(function(){
+        		$("#search").keydown(function(event){
+        			var value = $("#search").val();
+        			$("#body").remove();
+        			$("body").append("<div id='body' style='widows: 100%'>"+
+        		        	"<table>"+
+			    	        	"<tr>"+
+			    	        		"<td> <img src='/image/baiduMin.png' id='pic1' alt='百度log'></td>"+
+			    	        		"<td>"+
+			    	        			"<input class='input' type='text' name='search' id='search' value=''>"+
+			    	                	"<input type='submit' value='百度一下' id='baid' onclick='submit()'>"+
+			    	        		"</td>"+
+			    	        	"</tr>"+
+			            	"</table>"+
+			          "</div>");
+        			$("#search").focus();
+        			$("#search").val(value);
+        		});
+        	})
+        	function submit(){
+       			var search = $("#search").val();
+       			$.ajax({
+       				url:"/search",
+       				dataType:"json",
+       				data:"search="+search,
+       				success:function(msg){
+       					$("#news").remove();
+       					var htmlCode="<div id = 'news'>"
+       					var length = msg.length
+       					for(var i=0 ; i<length ; i++){
+       						htmlCode+="<div id = "+msg[i].nid+" name='list'>"+
+           	   				"<h3><a href='#'>"+msg[i].title+"</a></h3>"+
+           	   				"<div name='content' style='width: 500px;'>"+
+           	   					msg[i].content+
+           	   				"</div>"+
+           	   			"</div>"
+       					}
+       					htmlCode+="</div>"
+       					$("body").append(htmlCode);
+       	
+       				}
+       			});
+        			
+        	}
+        </script>
+    </head>
+    <body>
+   		<div id = "body">
+   			<p id="thead" align="right">
+                <span>
+                    <a href="http://www.nuomi.com/?utm_source=yc&utm_medium=cps&utm_term=&utm_content=&utm_campaign=&cid=007607" target="_blank" ><span>糯米</span></a>
+                    <a href="http://news.baidu.com/" target="_blank" >新闻</a>
+                    <a href="https://www.hao123.com/" target="_blank" >hao123</a>
+                    <a href="http://map.baidu.com/" target="_blank" >地图</a>
+                    <a href="http://v.baidu.com/" target="_blank" >视频</a>
+                    <a href="http://tieba.baidu.com/" target="_blank" >贴吧</a>
+                    <a href="#" target="_blank" >登录</a>
+                    <a href="#" target="_blank">设置</a>
+                    <input type="submit" name="sub1" value="更多产品" id="list">
+                </span> 
+            </p>
+            <p id="bg" align="center">
+                <img src="/image/baidu.png" id="pic1" alt="百度log">
+            </p>
+            <p id="inp1" align="center">
+                <input class="input" type="text" name="search" id="search" value="">
+                <input type="submit" value="百度一下" id="baid">
+            </p>
+			<p id="beiAn" align="center">
+        	<img src="/image/beiAn.png" id="pic1" alt="百度备案">
+        	</p>
+   		</div>
+   		
+   		
+   		
+   		
+    </body>
+</html>
