@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -18,11 +20,16 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
+import org.apache.lucene.search.highlight.QueryScorer;
+import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
+import org.apache.lucene.search.highlight.TextFragment;
+import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.wltea.analyzer.lucene.IKAnalyzer;
 
@@ -103,24 +110,13 @@ public class LuceneManager {
 		doc.add(content);
 		return doc;
 	}
-	
-	/**
-	 * 根据传入的Document返回一个News
-	 * @return
-	 */
-	public News getNewsByDocument(Document doc){
-		News news = new News();
-		news.setTitle(doc.getField("title").stringValue());
-		news.setContent(doc.getField("content").stringValue());
-		return news;
-	}
-	
 	/**
 	 * 根据传入的值，返回一个查询到的信息集合返回
 	 * @throws IOException 
 	 * @throws ParseException 
+	 * @throws InvalidTokenOffsetsException 
 	 */
-	public List<News> search(String title) throws IOException, ParseException{
+	public List<News> search(String title) throws IOException, ParseException, InvalidTokenOffsetsException{
 		//创建一个目录位置，供读写流读取
 		Directory directory = getDirectory();
 		//指定读取的流
@@ -129,16 +125,72 @@ public class LuceneManager {
 		IndexSearcher isearcher = new IndexSearcher(ireader);
 		//构建查询解析器
 		QueryParser parser = new QueryParser(Version.LUCENE_47,"title", analyzer);
-		//通过解析器将输入的查询内容进行分词，并封装到一个Query对象中
+		//通过解析器将输入的查询内容进行分词,并判断得分，并封装到一个Query对象中
 		Query query = parser.parse(title);
 		//使用搜索器，将符合query的doc返回到一个ScoreDoc数组中
 		ScoreDoc[] hits = isearcher.search(query,1000).scoreDocs;
+		//创建高亮代码的前缀和后缀默认是加粗<b><b/>
+		SimpleHTMLFormatter htmlFormatter = new SimpleHTMLFormatter("<font color='red'>","</font>");
+		
+		//高亮分析器,指定分词后的 Query对象
+		Highlighter highlighter = new Highlighter(htmlFormatter, new QueryScorer(query));
+
 		List<News> list = new ArrayList<News>();
 		for(int i = 0; i < hits.length;i++){
-			 Document hitDoc = isearcher.doc(hits[i].doc);
-			 list.add(getNewsByDocument(hitDoc));
+			//获取第i个元素的id
+			int id = hits[i].doc;
+			//把第i个document取出来
+			Document document = isearcher.doc(id);
+			//获取title中的值并且获取的Title的长度用于
+			String dTitle = document.get("title");
+			//将搜寻的结果分词
+			TokenStream titleTs = TokenSources.getAnyTokenStream(isearcher.getIndexReader(), id, "title", analyzer); 
+			//通过高亮分析器将，把要高亮的部分进行加工
+			TextFragment[] titleFrag = highlighter.getBestTextFragments(titleTs,dTitle,false,dTitle.length());
+			for (int j = 0;j<titleFrag.length;j++) {
+				if ((titleFrag[j] != null) && (titleFrag[j].getScore() > 0)) {
+					//获取加入高亮后的值
+					dTitle = titleFrag[j].toString();
+			     }
+			}
+			
+			//获取content中的值
+			String dContent = document.get("content");
+			//将搜寻的结果分词
+			TokenStream contentTs = TokenSources.getAnyTokenStream(isearcher.getIndexReader(), id, "content", analyzer); 
+			//通过高亮分析器将，把要高亮的部分进行加工
+			TextFragment[] contentFrag = highlighter.getBestTextFragments(contentTs,dContent,false,dContent.length());
+			for (int j = 0;j<contentFrag.length;j++) {
+				if ((contentFrag[j] != null) && (contentFrag[j].getScore() > 0)) {
+					dContent = contentFrag[j].toString();
+			     }
+			}
+			//将要查询的结果封装成一个对象
+			News news = new News(null,dTitle,dContent);
+			//将对象添加到list集合中最后返回个页面
+			list.add(news);
 		}
 		return list;
+		
+	}
+	/**
+	 * 针对分词器的分词效果进行测试
+	 * @param title
+	 * @throws IOException
+	 */
+	public void analyzerTest(String title) throws IOException{
+
+		//使用分词器测试分词
+		StringReader reader = new StringReader(title);
+		TokenStream ts = analyzer.tokenStream("", reader);
+		//必须使用reset()方法重置一下
+		ts.reset();
+		CharTermAttribute term = ts.getAttribute(CharTermAttribute.class);
+		//输出分词器和处理结果
+		System.out.println(analyzer.getClass());
+		while(ts.incrementToken()){
+			System.out.print(term.toString()+"|");
+		}
 		
 	}
 
